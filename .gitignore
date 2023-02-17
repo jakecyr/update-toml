@@ -3,3 +3,4 @@ build
 requirements.txt
 **/__pycache__/**
 env
+*.whl
