@@ -12,8 +12,8 @@ pip install update-toml
 
 ## Usage
 
-Run the following in the same directory as your pyproject.toml file:
+Run the following command, passing in a path and value to update in the specified .toml file:
 
 ```bash
-update-toml
+update-toml --path project.version --value 0.0.1 pyproject.toml
 ```

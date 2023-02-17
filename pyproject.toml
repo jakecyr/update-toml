@@ -23,7 +23,7 @@ dependencies = [
 ]
 
 [project.scripts]
-toml-to-req = "update_toml.main:main"
+update-toml = "update_toml.main:main"
 
 [tool.distutils.bdist_wheel]
 universal = true
