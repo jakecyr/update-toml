@@ -1,0 +1,2 @@
+class FileNotLoadedException(Exception):
+    pass
