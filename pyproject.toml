@@ -7,7 +7,7 @@ name = "update_toml"
 authors = [
     {name = "Jake Cyr", email = "cyrjake@gmail.com"},
 ]
-version = "0.0.1"
+version = "0.0.2"
 description = "Update a toml value from a CLI"
 readme = "README.md"
 requires-python = ">=3.7"
@@ -20,6 +20,16 @@ classifiers = [
 ]
 dependencies = [
   "toml"
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest",
+  "black",
+  "mypy",
+  "flake8",
+  "isort",
+  "build",
 ]
 
 [project.scripts]

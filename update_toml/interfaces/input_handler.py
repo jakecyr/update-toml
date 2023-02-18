@@ -4,5 +4,5 @@ from update_toml.models.user_input import UserInput
 
 
 class InputHandler(Protocol):
-    def parse() -> UserInput:
+    def parse(self) -> UserInput:
         pass
