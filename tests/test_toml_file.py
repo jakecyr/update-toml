@@ -1,7 +1,12 @@
-from unittest.mock import MagicMock, patch, mock_open
-from pytest import fixture
-from update_toml.toml_file import TOMLFile
 import json
+from unittest.mock import MagicMock, mock_open, patch
+
+import pytest
+from pytest import fixture
+
+from update_toml.exceptions.file_not_loaded_exception import \
+    FileNotLoadedException
+from update_toml.toml_file import TOMLFile
 
 TEST_FILE_PATH = "pyproject-test.toml"
 
@@ -54,7 +59,12 @@ def test_to_json_works(toml_file: TOMLFile):
     try:
         json.loads(toml_file.to_json())
     except:
-        assert False, "Invalid JSON was returned"
+        pytest.fail("Invalid JSON received from to_json method")
+
+
+def test_to_json_raises_error_if_not_loaded(toml_file: TOMLFile):
+    with pytest.raises(FileNotLoadedException):
+        toml_file.to_json()
 
 
 @patch("builtins.open", mock_open(read_data=TEST_TOML_CONTENTS))
@@ -66,6 +76,25 @@ def test_update_updates_the_toml_value(toml_file: TOMLFile):
     toml_file.update(path, new_value)
     assert toml_file._contents is not None
     assert toml_file._contents["project"]["version"] == new_value
+
+
+def test_update_raises_exception_if_not_loaded(toml_file: TOMLFile):
+    path = "project.version"
+    new_value = "10.0.0"
+
+    with pytest.raises(FileNotLoadedException):
+        toml_file.update(path, new_value)
+
+
+@patch("builtins.open", mock_open(read_data=TEST_TOML_CONTENTS))
+def test_update_raises_exception_if_invalid_path(toml_file: TOMLFile):
+    path = "project"
+    new_value = "10.0.0"
+
+    toml_file.load()
+
+    with pytest.raises(ValueError):
+        toml_file.update(path, new_value)
 
 
 @patch("builtins.open", mock_open(read_data=TEST_TOML_CONTENTS))
@@ -83,3 +112,20 @@ def test_get_parent_object(toml_file: TOMLFile):
     )
 
     assert object == {"version": "10.0.0"}
+
+
+@patch("builtins.open", mock_open(read_data=TEST_TOML_CONTENTS))
+def test_save_raises_exception_if_not_loaded(toml_file: TOMLFile):
+    path = "project.version"
+    new_value = "10.0.0"
+
+    with pytest.raises(ValueError):
+        toml_file.save()
+
+
+@patch("builtins.open")
+def test_save_does_not_throw_error(toml_file: TOMLFile):
+    path = "project.version"
+    new_value = "10.0.0"
+    toml_file.load()
+    toml_file.save()

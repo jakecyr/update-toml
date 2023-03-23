@@ -3,9 +3,8 @@ from typing import Any, Dict, List, Optional
 
 import tomlkit as toml
 
-from update_toml.exceptions.file_not_loaded_exception import (
-    FileNotLoadedException,
-)
+from update_toml.exceptions.file_not_loaded_exception import \
+    FileNotLoadedException
 
 
 class TOMLFile:

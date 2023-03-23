@@ -30,6 +30,7 @@ dev = [
   "flake8",
   "isort",
   "build",
+  "coverage",
 ]
 
 [project.scripts]
