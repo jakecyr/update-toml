@@ -33,6 +33,8 @@ def main() -> None:
     elif args.command == "get":
         value: str = toml_file.get_value_safe(args.path)
         print(value)
+    else:
+        raise ValueError("Invalid command")
 
 
 if __name__ == "__main__":

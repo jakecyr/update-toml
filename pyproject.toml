@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "update_toml"
-version = "0.2.0"
+version = "0.2.1"
 description = "Update a toml value from a CLI"
 authors = ["Jake Cyr <cyrjake@gmail.com>"]
 readme = "README.md"
