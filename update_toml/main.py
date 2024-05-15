@@ -21,13 +21,18 @@ def main() -> None:
     toml_file = TOMLFile(args.toml_path)
 
     toml_file.load()
-    logging.info(f"Loaded {args.toml_path}.")
 
-    toml_file.update(args.path, args.value)
-    logging.info(f"Updated {args.path} to '{args.value}'.")
-
-    toml_file.save()
-    logging.info(f"Saved update values to {args.toml_path}.")
+    if args.command == "update" and args.value:
+        toml_file.update(args.path, args.value)
+        logging.info(f"Updated {args.path} to '{args.value}'.")
+        toml_file.save()
+        logging.info(f"Saved update values to {args.toml_path}.")
+    elif args.command == "exists":
+        path_exists: bool = toml_file.path_exists(args.path)
+        print("True" if path_exists else "False")
+    elif args.command == "get":
+        value: str = toml_file.get_value_safe(args.path)
+        print(value)
 
 
 if __name__ == "__main__":

@@ -38,6 +38,27 @@ class TOMLFile:
         property_to_update: str = path_parts[0]
         parent_object[property_to_update] = new_value
 
+    def path_exists(self, path: str) -> bool:
+        if self._contents is None:
+            raise FileNotLoadedException("load has not yet been called")
+
+        try:
+            path_parts: list[str] = path.split(".")
+            self._get_value(path_parts, self._contents)
+            return True
+        except KeyError:
+            return False
+
+    def get_value_safe(self, path: str) -> str:
+        if self._contents is None:
+            raise FileNotLoadedException("load has not yet been called")
+
+        try:
+            path_parts: list[str] = path.split(".")
+            return self._get_value(path_parts, self._contents)
+        except KeyError:
+            return ""
+
     def get_value(self, path: str) -> str:
         if self._contents is None:
             raise FileNotLoadedException("load has not yet been called")
