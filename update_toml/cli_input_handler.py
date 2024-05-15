@@ -11,17 +11,26 @@ class CLIInputHandler:
         )
 
         parser.add_argument(
-            "toml_path", help="The path to the .toml file to update"
+            "-f",
+            "--file",
+            help="The path to the .toml file to update",
+            default="pyproject.toml",
         )
         parser.add_argument(
             "-p",
             "--path",
-            help="Path in the TOML to update (ex. project.version)",
+            help="Path in the attribute in the TOML file to update (ex. project.version or tool.poetry.version)",
+            required=True,
+            type=str,
         )
         parser.add_argument(
-            "-v", "--value", help="The value to set the path to"
+            "-v",
+            "--value",
+            help="The value to set the path to in the TOML file",
+            required=True,
+            type=str,
         )
 
         args: argparse.Namespace = parser.parse_args()
 
-        return UserInput(args.toml_path, args.path, args.value)
+        return UserInput(args.file, args.path, args.value)

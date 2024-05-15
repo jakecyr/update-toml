@@ -6,3 +6,6 @@ env
 *.whl
 dist
 .coverage
+.venv
+.python-version
+__pycache__

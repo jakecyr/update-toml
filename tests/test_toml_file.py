@@ -4,8 +4,7 @@ from unittest.mock import MagicMock, mock_open, patch
 import pytest
 from pytest import fixture
 
-from update_toml.exceptions.file_not_loaded_exception import \
-    FileNotLoadedException
+from update_toml.exceptions.file_not_loaded_exception import FileNotLoadedException
 from update_toml.toml_file import TOMLFile
 
 TEST_FILE_PATH = "pyproject-test.toml"
@@ -43,9 +42,7 @@ def toml_file():
 
 
 def test_toml_file_load_loads_contents(toml_file: TOMLFile):
-    with patch(
-        "builtins.open", mock_open(read_data=TEST_TOML_CONTENTS)
-    ) as mock:
+    with patch("builtins.open", mock_open(read_data=TEST_TOML_CONTENTS)) as mock:
         toml_file.load()
 
     assert mock.call_args_list[0].args[0] == TEST_FILE_PATH
@@ -116,16 +113,11 @@ def test_get_parent_object(toml_file: TOMLFile):
 
 @patch("builtins.open", mock_open(read_data=TEST_TOML_CONTENTS))
 def test_save_raises_exception_if_not_loaded(toml_file: TOMLFile):
-    path = "project.version"
-    new_value = "10.0.0"
-
     with pytest.raises(ValueError):
         toml_file.save()
 
 
 @patch("builtins.open")
 def test_save_does_not_throw_error(toml_file: TOMLFile):
-    path = "project.version"
-    new_value = "10.0.0"
     toml_file.load()
     toml_file.save()
