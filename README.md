@@ -17,7 +17,7 @@ pip install update-toml
 Run the following command, passing in a path and value to update in the specified .toml file:
 
 ```bash
-update-toml --path project.version --value 0.0.1 --file pyproject.toml
+update-toml update --path project.version --value 0.0.1 --file pyproject.toml
 ```
 
 ### Get
@@ -25,7 +25,7 @@ update-toml --path project.version --value 0.0.1 --file pyproject.toml
 Get a value from a .toml file:
 
 ```bash
-update-toml --path project.version --file pyproject.toml
+update-toml get --path project.version --file pyproject.toml
 # Example return: 0.0.1
 ```
 
@@ -34,6 +34,6 @@ update-toml --path project.version --file pyproject.toml
 Check if a path exists in a .toml file:
 
 ```bash
-update-toml --path project.version --file pyproject.toml
+update-toml exists --path project.version --file pyproject.toml
 # Example return: True or False
 ```
