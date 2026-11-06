@@ -1,40 +1,27 @@
-#!/usr/bin/env
+import sys
 
-import logging
-import os
+from tomlkit.exceptions import TOMLKitError
 
 from update_toml.cli_input_handler import CLIInputHandler
-from update_toml.interfaces.input_handler import InputHandler
-from update_toml.models.user_input import UserInput
 from update_toml.toml_file import TOMLFile
-
-logging.basicConfig(
-    format="%(levelname)s: %(message)s",
-    level=os.environ.get("LOGLEVEL", "INFO"),
-)
 
 
 def main() -> None:
-    input_handler: InputHandler = CLIInputHandler()
-    args: UserInput = input_handler.parse()
-
-    toml_file = TOMLFile(args.toml_path)
-
-    toml_file.load()
-
-    if args.command == "update" and args.value:
-        toml_file.update(args.path, args.value)
-        logging.info(f"Updated {args.path} to '{args.value}'.")
-        toml_file.save()
-        logging.info(f"Saved update values to {args.toml_path}.")
-    elif args.command == "exists":
-        path_exists: bool = toml_file.path_exists(args.path)
-        print("True" if path_exists else "False")
-    elif args.command == "get":
-        value: str = toml_file.get_value_safe(args.path)
-        print(value)
-    else:
-        raise ValueError("Invalid command")
+    args = CLIInputHandler().parse()
+    try:
+        toml_file = TOMLFile(args.toml_path)
+        toml_file.load()
+        if args.command == "update":
+            assert args.value is not None  # argparse requires --value
+            toml_file.update(args.path, args.value)
+            toml_file.save()
+        elif args.command == "exists":
+            print(toml_file.path_exists(args.path))
+        else:
+            print(toml_file.get_value_safe(args.path))
+    except (OSError, TOMLKitError, KeyError, ValueError, TypeError) as error:
+        print(f"update-toml: error: {error}", file=sys.stderr)
+        raise SystemExit(1) from error
 
 
 if __name__ == "__main__":

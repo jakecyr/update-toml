@@ -1,146 +1,95 @@
 import json
-from unittest.mock import MagicMock, mock_open, patch
+from pathlib import Path
 
 import pytest
-from pytest import fixture
 
 from update_toml.exceptions.file_not_loaded_exception import FileNotLoadedException
 from update_toml.toml_file import TOMLFile
 
-TEST_FILE_PATH = "pyproject-test.toml"
 
-TEST_TOML_CONTENTS = """
-[project]
-name = "update_toml"
-authors = [
-    {name = "Jake Cyr", email = "cyrjake@gmail.com"},
-]
-version = "0.0.1"
-description = "Update a toml value from a CLI"
-readme = "README.md"
-requires-python = ">=3.7"
-keywords = ["toml", "requirements", "update"]
-license = {text = "MIT"}
-classifiers = [
-  "Intended Audience :: Developers",
-  "License :: OSI Approved :: MIT License",
-  "Programming Language :: Python :: 3",
-]
-dependencies = [
-  "toml"
-]
-"""
-
-
-file_mock = MagicMock()
-file_mock.read.return_value = "test"
-
-
-@fixture
-def toml_file() -> TOMLFile:
-    return TOMLFile(TEST_FILE_PATH)
-
-
-def test_toml_file_load_loads_contents(toml_file: TOMLFile) -> None:
-    with patch("builtins.open", mock_open(read_data=TEST_TOML_CONTENTS)) as mock:
-        toml_file.load()
-
-    assert mock.call_args_list[0].args[0] == TEST_FILE_PATH
-    assert toml_file._contents is not None
-
-
-@patch("builtins.open", mock_open(read_data=TEST_TOML_CONTENTS))
-def test_to_json_works(toml_file: TOMLFile) -> None:
-    toml_file.load()
-
-    try:
-        json.loads(toml_file.to_json())
-    except:
-        pytest.fail("Invalid JSON received from to_json method")
-
-
-def test_to_json_raises_error_if_not_loaded(toml_file: TOMLFile) -> None:
-    with pytest.raises(FileNotLoadedException):
-        toml_file.to_json()
-
-
-@patch("builtins.open", mock_open(read_data=TEST_TOML_CONTENTS))
-def test_update_updates_the_toml_value(toml_file: TOMLFile) -> None:
-    toml_file.load()
-    path = "project.version"
-    new_value = "10.0.0"
-
-    toml_file.update(path, new_value)
-    assert toml_file._contents is not None
-    assert toml_file._contents["project"]["version"] == new_value
-
-
-def test_update_raises_exception_if_not_loaded(toml_file: TOMLFile):
-    path = "project.version"
-    new_value = "10.0.0"
-
-    with pytest.raises(FileNotLoadedException):
-        toml_file.update(path, new_value)
-
-
-@patch("builtins.open", mock_open(read_data=TEST_TOML_CONTENTS))
-def test_update_raises_exception_if_invalid_path(toml_file: TOMLFile) -> None:
-    path = "project"
-    new_value = "10.0.0"
-
-    toml_file.load()
-
-    with pytest.raises(ValueError):
-        toml_file.update(path, new_value)
-
-
-@patch("builtins.open", mock_open(read_data=TEST_TOML_CONTENTS))
-def test_get_value_returns_correct_value(toml_file: TOMLFile) -> None:
-    toml_file.load()
-    version = toml_file.get_value("project.version")
-    assert toml_file._contents is not None
-    assert version == toml_file._contents["project"]["version"]
-
-
-@patch("builtins.open", mock_open(read_data=TEST_TOML_CONTENTS))
-def test_get_parent_object(toml_file: TOMLFile) -> None:
-    object = toml_file._get_parent_object(
-        ["project", "version"], {"project": {"version": "10.0.0"}}
+@pytest.fixture
+def document(tmp_path: Path) -> TOMLFile:
+    path = tmp_path / "sample.toml"
+    path.write_text(
+        '# comment\nroot = "old"\n[project]\nversion = "1" # keep\ncount = 2\n',
+        encoding="utf-8",
     )
+    result = TOMLFile(path)
+    result.load()
+    return result
 
-    assert object == {"version": "10.0.0"}
+
+@pytest.mark.parametrize(
+    "method,args",
+    [
+        ("to_json", ()),
+        ("update", ("x", "y")),
+        ("path_exists", ("x",)),
+        ("get_value", ("x",)),
+        ("get_value_safe", ("x",)),
+        ("save", ()),
+    ],
+)
+def test_requires_load(tmp_path: Path, method: str, args: tuple) -> None:
+    with pytest.raises(FileNotLoadedException):
+        getattr(TOMLFile(tmp_path / "x"), method)(*args)
 
 
-@patch("builtins.open", mock_open(read_data=TEST_TOML_CONTENTS))
-def test_save_raises_exception_if_not_loaded(toml_file: TOMLFile) -> None:
+def test_read_and_update_preserves_comments(document: TOMLFile, tmp_path: Path) -> None:
+    assert document.get_value("project.count") == 2
+    assert json.loads(document.to_json())["project"]["version"] == "1"
+    document.update("project.version", "")
+    document.update("project.new", "value")
+    document.update("root", "changed")
+    document.save()
+    text = (tmp_path / "sample.toml").read_text(encoding="utf-8")
+    assert "# comment" in text and "# keep" in text
+    document.load()
+    assert document.get_value("project.version") == ""
+    assert document.get_value("project.new") == "value"
+    assert document.get_value("root") == "changed"
+
+
+@pytest.mark.parametrize(
+    "path", ["missing", "project.missing", "root.child", "missing.child"]
+)
+def test_missing_paths(document: TOMLFile, path: str) -> None:
+    assert not document.path_exists(path)
+    assert document.get_value_safe(path) == ""
+    with pytest.raises(KeyError):
+        document.get_value(path)
+
+
+@pytest.mark.parametrize("path", ["", ".project", "project.", "project..version"])
+def test_invalid_paths(document: TOMLFile, path: str) -> None:
+    for method in (document.get_value, document.get_value_safe, document.path_exists):
+        with pytest.raises(ValueError):
+            method(path)
     with pytest.raises(ValueError):
-        toml_file.save()
+        document.update(path, "x")
 
 
-@patch("builtins.open")
-def test_save_does_not_throw_error(toml_file: TOMLFile) -> None:
-    toml_file.load()
-    toml_file.save()
+def test_missing_or_non_table_parent(document: TOMLFile) -> None:
+    with pytest.raises(KeyError):
+        document.update("missing.child", "x")
+    with pytest.raises(TypeError):
+        document.update("root.child", "x")
 
 
-@patch("builtins.open", mock_open(read_data=TEST_TOML_CONTENTS))
-def test_get_value_safe_does_not_throw_error(toml_file: TOMLFile) -> None:
-    toml_file.load()
-    path = "test"
-    toml_file.get_value_safe(path)
+def test_empty_file_can_be_saved(tmp_path: Path) -> None:
+    path = tmp_path / "empty.toml"
+    path.write_text("", encoding="utf-8")
+    document = TOMLFile(path)
+    document.load()
+    document.save()
+    assert path.read_text(encoding="utf-8") == ""
 
 
-@patch("builtins.open", mock_open(read_data=TEST_TOML_CONTENTS))
-def test_path_exists_returns_true_if_exists(toml_file: TOMLFile) -> None:
-    toml_file.load()
-    path = "project.version"
-    assert toml_file.path_exists(path)
-
-
-@patch("builtins.open", mock_open(read_data=TEST_TOML_CONTENTS))
-def test_path_exists_returns_false_if_does_not_exist(toml_file: TOMLFile) -> None:
-    toml_file.load()
-    assert not toml_file.path_exists("project.versionz")
-    assert not toml_file.path_exists("versionz")
-    assert not toml_file.path_exists("versionz.version.version")
-    assert not toml_file.path_exists("")
+def test_crlf_preserved(tmp_path: Path) -> None:
+    path = tmp_path / "crlf.toml"
+    path.write_bytes(b'[project]\r\nversion = "1"\r\n')
+    document = TOMLFile(path)
+    document.load()
+    document.update("project.version", "2")
+    document.save()
+    assert path.read_bytes() == b'[project]\r\nversion = "2"\r\n'
