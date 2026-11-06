@@ -12,15 +12,21 @@ dependencies = ["tomlkit>=0.15.2,<0.16.0"]
 [project.scripts]
 update-toml = "update_toml.main:main"
 
-[tool.poetry.group.dev.dependencies]
-pytest = "^9.2.0"
-ruff = "^0.17.4"
-mypy = "^2.4.1"
-coverage = ">=7.5,<8"
+[dependency-groups]
+dev = [
+    "pytest>=9.2.0,<10",
+    "ruff>=0.17.4,<0.18",
+    "mypy>=2.4.1,<3",
+    "coverage>=7.5,<8",
+]
 
 [build-system]
-requires = ["poetry-core>=2.0,<3.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["uv_build>=0.13.7,<0.14.0"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-root = ""
+source-include = ["tests/**"]
 
 [tool.ruff]
 line-length = 88
