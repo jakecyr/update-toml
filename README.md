@@ -46,15 +46,15 @@ file.save()
 
 ## Development
 
-Install [Poetry](https://python-poetry.org/docs/#installation), then run:
+Install [uv](https://docs.astral.sh/uv/getting-started/installation/), then run:
 
 ```bash
-poetry install
-poetry run pytest
-poetry run ruff check .
-poetry run ruff format --check .
-poetry run mypy update_toml
-poetry build
+uv sync --locked
+uv run --locked pytest
+uv run --locked ruff check .
+uv run --locked ruff format --check .
+uv run --locked mypy update_toml
+uv build
 ```
 
-The lock file records development and runtime dependencies. To refresh it, run `poetry update` and rerun the checks.
+The lock file records development and runtime dependencies. To refresh it, run `uv lock --upgrade` and rerun the checks.
