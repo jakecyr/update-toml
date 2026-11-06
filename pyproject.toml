@@ -1,29 +1,29 @@
-[tool.poetry]
+[project]
 name = "update_toml"
 version = "0.2.1"
-description = "Update a toml value from a CLI"
-authors = ["Jake Cyr <cyrjake@gmail.com>"]
+description = "Update a TOML value from a CLI"
+authors = [{name = "Jake Cyr", email = "cyrjake@gmail.com"}]
 readme = "README.md"
 license = "MIT"
 keywords = ["toml", "requirements", "update"]
+requires-python = ">=3.10,<4.0"
+dependencies = ["tomlkit>=0.15.2,<0.16.0"]
 
-[tool.poetry.dependencies]
-python = ">=3.8"
-tomlkit = "^0.12.5"
-
-[tool.poetry.group.dev.dependencies]
-pytest = "^8.2.0"
-ruff = "^0.4.4"
-mypy = "^1.10.0"
-coverage = "^7.5.1"
-
-[tool.poetry.scripts]
+[project.scripts]
 update-toml = "update_toml.main:main"
 
+[tool.poetry.group.dev.dependencies]
+pytest = "^9.2.0"
+ruff = "^0.17.4"
+mypy = "^2.4.1"
+coverage = ">=7.5,<8"
+
 [build-system]
-requires = ["poetry-core>=1.8.0"]
+requires = ["poetry-core>=2.0,<3.0"]
 build-backend = "poetry.core.masonry.api"
 
-[tool.black]
-line-length = 80
-target-version = ["py39"]
+[tool.ruff]
+line-length = 88
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
